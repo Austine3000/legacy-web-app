@@ -32,6 +32,67 @@ function App() {
     }
   }, []);
 
+  // Hide/show Tawk.to widget based on KYC state
+  useEffect(() => {
+    // Hide Tawk.to widget when KYC is active (accessToken exists)
+    if (accessToken) {
+      // Wait for Tawk.to to be fully loaded before trying to hide it
+      const hideTawkWidget = () => {
+        if (
+          window.Tawk_API &&
+          typeof window.Tawk_API.hideWidget === "function"
+        ) {
+          window.Tawk_API.hideWidget();
+        }
+      };
+
+      // Try to hide immediately if Tawk_API is already available
+      if (window.Tawk_API && typeof window.Tawk_API.hideWidget === "function") {
+        hideTawkWidget();
+      } else {
+        // Wait for Tawk.to to load (it loads asynchronously)
+        const checkInterval = setInterval(() => {
+          if (
+            window.Tawk_API &&
+            typeof window.Tawk_API.hideWidget === "function"
+          ) {
+            hideTawkWidget();
+            clearInterval(checkInterval);
+          }
+        }, 100);
+
+        // Clear interval after 5 seconds if Tawk.to doesn't load
+        setTimeout(() => clearInterval(checkInterval), 5000);
+
+        return () => {
+          clearInterval(checkInterval);
+          // Show widget again when KYC ends
+          if (
+            window.Tawk_API &&
+            typeof window.Tawk_API.showWidget === "function"
+          ) {
+            window.Tawk_API.showWidget();
+          }
+        };
+      }
+
+      return () => {
+        // Show widget again when KYC ends
+        if (
+          window.Tawk_API &&
+          typeof window.Tawk_API.showWidget === "function"
+        ) {
+          window.Tawk_API.showWidget();
+        }
+      };
+    } else {
+      // Show widget when not in KYC mode
+      if (window.Tawk_API && typeof window.Tawk_API.showWidget === "function") {
+        window.Tawk_API.showWidget();
+      }
+    }
+  }, [accessToken, error]);
+
   if (error) {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
@@ -60,6 +121,14 @@ function App() {
         onComplete={(result) => {
           console.log("KYC completed:", result);
 
+          // Show Tawk.to widget again after KYC completes
+          if (
+            window.Tawk_API &&
+            typeof window.Tawk_API.showWidget === "function"
+          ) {
+            window.Tawk_API.showWidget();
+          }
+
           // Notify mobile app that KYC is complete
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(
@@ -81,6 +150,14 @@ function App() {
         }}
         onError={(error) => {
           console.error("KYC error:", error);
+
+          // Show Tawk.to widget again after KYC error
+          if (
+            window.Tawk_API &&
+            typeof window.Tawk_API.showWidget === "function"
+          ) {
+            window.Tawk_API.showWidget();
+          }
 
           // Notify mobile app of error
           if (window.ReactNativeWebView) {
@@ -118,6 +195,20 @@ function App() {
       />
     </>
   );
+}
+
+// TypeScript declarations
+declare global {
+  interface Window {
+    Tawk_API?: {
+      hideWidget: () => void;
+      showWidget: () => void;
+      [key: string]: any;
+    };
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
+  }
 }
 
 export default App;
