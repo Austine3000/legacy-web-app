@@ -56,6 +56,10 @@ export const SumsubKyc: React.FC<SumsubKycProps> = ({
           .init(accessToken, getNewAccessToken)
           .withConf({
             lang: "en",
+            uiConf: {
+              theme: "light",
+              backgroundColor: "#ffffff",
+            },
           })
           .withOptions({
             addViewportTag: false,
@@ -184,16 +188,28 @@ export const SumsubKyc: React.FC<SumsubKycProps> = ({
   }
 
   return (
-    <div style={{ width: "100%", minHeight: "600px" }}>
+    <div
+      style={{ width: "100%", minHeight: "600px", backgroundColor: "#ffffff" }}
+    >
       {isLoading && (
-        <div style={{ padding: "20px", textAlign: "center" }}>
+        <div
+          style={{
+            padding: "20px",
+            textAlign: "center",
+            backgroundColor: "#ffffff",
+          }}
+        >
           <p>Loading verification...</p>
         </div>
       )}
       <div
         id={containerId.current}
         ref={containerRef}
-        style={{ width: "100%", minHeight: "600px" }}
+        style={{
+          width: "100%",
+          minHeight: "600px",
+          backgroundColor: "#ffffff",
+        }}
       />
     </div>
   );
@@ -214,7 +230,11 @@ declare global {
           phone?: string;
           country?: string;
           i18n?: any;
-          uiConf?: any;
+          uiConf?: {
+            theme?: "light" | "dark";
+            backgroundColor?: string;
+            [key: string]: any;
+          };
           documentDefinitions?: any;
         }) => any;
         withOptions: (options: {

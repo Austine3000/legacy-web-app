@@ -95,7 +95,14 @@ function App() {
 
   if (error) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
+      <div
+        style={{
+          padding: "20px",
+          textAlign: "center",
+          backgroundColor: "#ffffff",
+          minHeight: "100vh",
+        }}
+      >
         <h1>Legacy Web App</h1>
         <p style={{ color: "red" }}>Error: {error}</p>
       </div>
@@ -104,7 +111,14 @@ function App() {
 
   if (!accessToken) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
+      <div
+        style={{
+          padding: "20px",
+          textAlign: "center",
+          backgroundColor: "#ffffff",
+          minHeight: "100vh",
+        }}
+      >
         <h1>Legacy Web App</h1>
         <p>Waiting for access token from mobile app...</p>
         <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>
@@ -115,7 +129,9 @@ function App() {
   }
 
   return (
-    <>
+    <div
+      style={{ backgroundColor: "#ffffff", minHeight: "100vh", width: "100%" }}
+    >
       <SumsubKyc
         accessToken={accessToken}
         onComplete={(result) => {
@@ -193,7 +209,7 @@ function App() {
           }
         }}
       />
-    </>
+    </div>
   );
 }
 
