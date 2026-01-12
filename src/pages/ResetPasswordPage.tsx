@@ -45,7 +45,7 @@ function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/confirm-reset-token`, {
+      const response = await fetch(`${API_URL}/users/confirm-reset-token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
