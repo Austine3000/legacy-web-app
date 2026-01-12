@@ -45,10 +45,10 @@ function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/confirm-reset-password`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/auth/confirm-reset-token`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,

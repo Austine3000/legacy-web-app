@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-import HomePage from './pages/HomePage.tsx';
-import KycPage from './pages/KycPage.tsx';
-import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./App.css";
+import HomePage from "./pages/HomePage.tsx";
+import KycPage from "./pages/KycPage.tsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 
 function App() {
   return (
