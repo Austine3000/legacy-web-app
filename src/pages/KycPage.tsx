@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { SumsubKyc } from '../components/SumsubKyc';
-import './KycPage.css';
+import { useState, useEffect } from "react";
+import { SumsubKyc } from "../components/SumsubKyc";
+import "./KycPage.css";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function KycPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -10,26 +10,37 @@ function KycPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Extract JWT access token from URL parameters (from onboarding links)
+    // Extract access token and type from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const jwtFromUrl = urlParams.get('accessToken');
+    const accessTokenFromUrl = urlParams.get("accessToken");
+    const flowType = urlParams.get("type") || "legacy"; // 'agent', 'mobile', or 'legacy' (for backward compatibility)
 
-    if (jwtFromUrl) {
-      // Generate Sumsub access token using the JWT
-      generateSumsubToken(jwtFromUrl);
+    console.log("accessTokenFromUrl", accessTokenFromUrl);
+    console.log("flowType", flowType);
+
+    if (accessTokenFromUrl) {
+      // If type is 'agent' or 'mobile', the token is already a Sumsub token
+      // No need to convert - use it directly
+      if (flowType === "agent" || flowType === "mobile") {
+        setAccessToken(accessTokenFromUrl);
+        setLoading(false);
+      } else {
+        // Legacy support: if no type or unknown type, assume it's JWT and convert
+        generateSumsubToken(accessTokenFromUrl);
+      }
     } else {
       // Also listen for postMessage from mobile app (alternative method)
       const handleMessage = (event: MessageEvent) => {
-        if (event.data && event.data.type === 'SUMSUB_ACCESS_TOKEN') {
+        if (event.data && event.data.type === "SUMSUB_ACCESS_TOKEN") {
           setAccessToken(event.data.accessToken);
           setLoading(false);
         }
       };
 
-      window.addEventListener('message', handleMessage);
+      window.addEventListener("message", handleMessage);
 
       return () => {
-        window.removeEventListener('message', handleMessage);
+        window.removeEventListener("message", handleMessage);
       };
     }
   }, []);
@@ -38,22 +49,22 @@ function KycPage() {
     try {
       // Call backend to generate Sumsub access token using the JWT
       const response = await fetch(`${API_URL}/kyc/sumsub/access-token`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
         body: JSON.stringify({}),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate KYC access token');
+        throw new Error("Failed to generate KYC access token");
       }
 
       const data = await response.json();
       setAccessToken(data.data.token);
     } catch (err: any) {
-      setError(err.message || 'Failed to initialize KYC verification');
+      setError(err.message || "Failed to initialize KYC verification");
     } finally {
       setLoading(false);
     }
@@ -65,19 +76,19 @@ function KycPage() {
       const hideTawkWidget = () => {
         if (
           window.Tawk_API &&
-          typeof window.Tawk_API.hideWidget === 'function'
+          typeof window.Tawk_API.hideWidget === "function"
         ) {
           window.Tawk_API.hideWidget();
         }
       };
 
-      if (window.Tawk_API && typeof window.Tawk_API.hideWidget === 'function') {
+      if (window.Tawk_API && typeof window.Tawk_API.hideWidget === "function") {
         hideTawkWidget();
       } else {
         const checkInterval = setInterval(() => {
           if (
             window.Tawk_API &&
-            typeof window.Tawk_API.hideWidget === 'function'
+            typeof window.Tawk_API.hideWidget === "function"
           ) {
             hideTawkWidget();
             clearInterval(checkInterval);
@@ -90,7 +101,7 @@ function KycPage() {
           clearInterval(checkInterval);
           if (
             window.Tawk_API &&
-            typeof window.Tawk_API.showWidget === 'function'
+            typeof window.Tawk_API.showWidget === "function"
           ) {
             window.Tawk_API.showWidget();
           }
@@ -100,13 +111,13 @@ function KycPage() {
       return () => {
         if (
           window.Tawk_API &&
-          typeof window.Tawk_API.showWidget === 'function'
+          typeof window.Tawk_API.showWidget === "function"
         ) {
           window.Tawk_API.showWidget();
         }
       };
     } else {
-      if (window.Tawk_API && typeof window.Tawk_API.showWidget === 'function') {
+      if (window.Tawk_API && typeof window.Tawk_API.showWidget === "function") {
         window.Tawk_API.showWidget();
       }
     }
@@ -131,7 +142,7 @@ function KycPage() {
           <div className="error-icon">⚠️</div>
           <h2>Verification Error</h2>
           <p>{error}</p>
-          <button 
+          <button
             className="retry-button"
             onClick={() => window.location.reload()}
           >
@@ -149,7 +160,8 @@ function KycPage() {
           <h2>KYC Verification</h2>
           <p>Waiting for access token...</p>
           <p className="help-text">
-            If you're testing directly, add ?accessToken=YOUR_JWT_TOKEN to the URL
+            If you're testing directly, add ?accessToken=YOUR_JWT_TOKEN to the
+            URL
           </p>
         </div>
       </div>
@@ -161,11 +173,11 @@ function KycPage() {
       <SumsubKyc
         accessToken={accessToken}
         onComplete={(result) => {
-          console.log('KYC completed:', result);
+          console.log("KYC completed:", result);
 
           if (
             window.Tawk_API &&
-            typeof window.Tawk_API.showWidget === 'function'
+            typeof window.Tawk_API.showWidget === "function"
           ) {
             window.Tawk_API.showWidget();
           }
@@ -174,26 +186,26 @@ function KycPage() {
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(
               JSON.stringify({
-                type: 'KYC_COMPLETED',
+                type: "KYC_COMPLETED",
                 result: result,
               })
             );
           } else {
             window.parent.postMessage(
               {
-                type: 'KYC_COMPLETED',
+                type: "KYC_COMPLETED",
                 result: result,
               },
-              '*'
+              "*"
             );
           }
         }}
         onError={(error) => {
-          console.error('KYC error:', error);
+          console.error("KYC error:", error);
 
           if (
             window.Tawk_API &&
-            typeof window.Tawk_API.showWidget === 'function'
+            typeof window.Tawk_API.showWidget === "function"
           ) {
             window.Tawk_API.showWidget();
           }
@@ -202,29 +214,29 @@ function KycPage() {
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(
               JSON.stringify({
-                type: 'KYC_ERROR',
+                type: "KYC_ERROR",
                 error: error.message,
               })
             );
           } else {
             window.parent.postMessage(
               {
-                type: 'KYC_ERROR',
+                type: "KYC_ERROR",
                 error: error.message,
               },
-              '*'
+              "*"
             );
           }
 
           setError(error.message);
         }}
         onStatusChange={(status) => {
-          console.log('KYC status changed:', status);
+          console.log("KYC status changed:", status);
 
           if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(
               JSON.stringify({
-                type: 'KYC_STATUS_CHANGED',
+                type: "KYC_STATUS_CHANGED",
                 status: status,
               })
             );
